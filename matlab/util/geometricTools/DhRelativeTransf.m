@@ -1,0 +1,13 @@
+function trans = DhRelativeTransf(theta, a, alpha, d)
+%UNTITLED2 Summary of this function goes here
+%   Detailed explanation goes here
+
+trans = ...
+    [[       cos(theta)        ,       -sin(theta)        ,        0       ,         a          ];...
+    [sin(theta)*cos(alpha), cos(theta)*cos(alpha), -sin(alpha), -sin(alpha)*d];...
+    [sin(theta)*sin(alpha), cos(theta)*sin(alpha),  cos(alpha),  cos(alpha)*d];...
+    [          0          ,          0           ,       0        ,           1         ]];
+        
+
+end
+
