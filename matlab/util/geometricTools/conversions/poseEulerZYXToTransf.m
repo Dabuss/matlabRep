@@ -1,5 +1,5 @@
 function transf = poseEulerZYXToTransf(pose)
-    validateattributes(pose,{'numeric'},{'size',[1,6]})
+%     validateattributes(pose,{'numeric'},{'size',[1,6]})
     
     x = pose(1);
     y = pose(2);
