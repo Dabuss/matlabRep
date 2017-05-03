@@ -1,4 +1,4 @@
-function Q = computeIKIiwa(tcpPoseEuler, destPoseEuler, swivel, varargin)
+function Q = computeIKIiwa1(tcpPoseEuler, destPoseEuler, swivel, varargin)
 % Analytical Iiwa 14 pneumatic touch flange inverse geometry function
 % tcpPoseEuler    :    
 % destPoseEuler   :
@@ -6,7 +6,6 @@ function Q = computeIKIiwa(tcpPoseEuler, destPoseEuler, swivel, varargin)
 % varargin        :  check limits, change convention, receive former config
 
 % Q configs, pose within workspace, config within joint limits 
-
 
 % ----------------------------------------------
 % Compute shoulder position
@@ -18,8 +17,12 @@ p_0_shoulder = [0;0;360];
 % ----------------------------------------------
 H_0_tcp = poseEulerZYXToTransf(destPoseEuler);
 H_7_tcp = poseEulerZYXToTransf(tcpPoseEuler);
+% H_6_7 = [1, 0,  0,  0   ;...
+%          0, 0, -1, -152 ;...
+%          0, 1,  0,  0   ;...
+%          0, 0,  0,  1   ]; % For iiwa 14 with pneumatic touch flange
 H_6_7 = [1, 0,  0,  0   ;...
-         0, 0, -1, -152 ;...
+         0, 0, -1, -126 ;...
          0, 1,  0,  0   ;...
          0, 0,  0,  1   ]; % For iiwa 14 with pneumatic touch flange
 H_0_6 = H_0_tcp*inverseTransformation(H_6_7*H_7_tcp);
@@ -90,7 +93,9 @@ p_0_elbow = p_0_shoulder + n*l1 + R * ( u *cos(swivel) + v * sin(swivel) );
 % relate these solutions to the status of the robot. the eight
 % configurations will be gathered in a configuration matrix 'Q' with 8
 % lines and 9 columns.
-Q = zeros(8,9);
+
+% Q = zeros(8,9);
+
 % z0 = H_w_0(1:3,3);
 % z7 = H_w_7(1:3,3);
 SE = p_0_elbow - p_0_shoulder;
@@ -101,8 +106,8 @@ EW = p_0_wrist - p_0_elbow;
 
 % first step is to compute the four sets of angles of the 4 first axis
 
-z3 = normalizeVector(SE);
-y3 = -normalizeVector(cross(SE,EW));
+z3 = SE/lUpperArm; %normalizeVector(SE);
+y3 = -normalizeVector(cross(z3,EW));
 x3 = cross(y3,z3);
 
 R_0_3 = [x3, y3, z3];
@@ -120,30 +125,47 @@ R_0_3 = [x3, y3, z3];
 % the angle between SE & EW helps computing q4
 
 % q1 = atan2(hy, hx) and q1 = atan2(hy, hx) + pi
-Q(1,1) = atan2(R_0_3(2,3), R_0_3(1,3)); % shoulder right
+
+% Q(1,1) = atan2(R_0_3(2,3), R_0_3(1,3)) % shoulder right
+
+Q(1,1) = atan2(SE(2),SE(1)); % OK
+% Q(1,1) = Q_1_1(destPoseEuler(4),destPoseEuler(5),destPoseEuler(6),swivel,destPoseEuler(1),destPoseEuler(2),destPoseEuler(3));
+
+
 Q(2,1) = Q(1,1);                          % shoulder right
 Q(3,1) = Q(1,1) + pi;                     % shoulder left
 Q(4,1) = Q(1,1) + pi;                     % shoulder left
 
 % for each of these solutions, q2 and q3 have one expression.
 % q2 = atan2(hx*cos(q1)+hy*sin(q1), hz)
-Q(1,2) = atan2(R_0_3(1,3)*cos(Q(1,1)) + R_0_3(2,3)*sin(Q(1,1)), R_0_3(3,3));
+
+% Q(1,2) = atan2(R_0_3(1,3)*cos(Q(1,1)) + R_0_3(2,3)*sin(Q(1,1)), R_0_3(3,3))
+% Q(1,2) = atan2(sqrt(z3(1)^2 + z3(2)^2),z3(3))
+
+Q(1,2) = atan2(sqrt(SE(1)^2 + SE(2)^2),SE(3));
+% Q(1,2) = Q_1_2(destPoseEuler(4),destPoseEuler(5),destPoseEuler(6),swivel,destPoseEuler(1),destPoseEuler(2),destPoseEuler(3));
+
 Q(2,2) = Q(1,2);
 Q(3,2) = -Q(1,2);
 Q(4,2) = -Q(1,2);
 
 % q3 = atan2(fy*cos(q1)-fx*sin(q1), gy*cos(q1)-gx*sin(q1))
-Q(1,3) = atan2(R_0_3(2,1)*cos(Q(1,1)) - ...
-               R_0_3(1,1)*sin(Q(1,1)), ...
-               R_0_3(2,2)*cos(Q(1,1)) - ...
-               R_0_3(1,2)*sin(Q(1,1)));     % Shoulder right, elbow right
+
+% Q(1,3) = atan2(R_0_3(2,1)*cos(Q(1,1)) - ...
+%                R_0_3(1,1)*sin(Q(1,1)), ...
+%                R_0_3(2,2)*cos(Q(1,1)) - ...
+%                R_0_3(1,2)*sin(Q(1,1)))     % Shoulder right, elbow right
+
+Q(1,3) = atan2(y3(3),-x3(3));
+% Q(1,3) = Q_1_3(destPoseEuler(4),destPoseEuler(5),destPoseEuler(6),swivel,destPoseEuler(1),destPoseEuler(2),destPoseEuler(3))
+
 Q(2,3) = Q(1,3) + pi;                        % Shoulder right, elbow left
 Q(3,3) = Q(1,3);                             % shoulder left, elbow left
 Q(4,3) = Q(1,3) + pi;                        % shoulder left, elbow right
 
 % q4 can be defined as the angle between x3 and x4.
 %q4
-y4 = normalizeVector(EW);
+y4 = EW/lForeArm;
 z4 = -y3;
 x4 = cross(y4, z4);
 
@@ -154,7 +176,16 @@ if (isequal([0;0;0], x4-x3))
     Q(4,4) = 0;
 else
     %         Q(1,4) = real(asin(dot(cross(x3, x4),z4)));
-    Q(1,4) = real(atan2(dot(cross(x3, x4),z4),dot(x3,x4)));
+    
+%     Q(1,4) = real(atan2(dot(cross(x3, x4),z4),dot(x3,x4))) % can be simpler ! (cosine law)
+%     Q(1,4) = -atan2(dot(x3,y4),dot(x3,x4)); % OK
+    SW = SE+EW;
+    Q(1,4) = pi - acos((dot(SE,SE)+dot(EW,EW)-dot(SW,SW))/(2*(norm(SE)*norm(EW))));
+    
+%     tic
+%     Q(1,4) = Q_1_4(destPoseEuler(4),destPoseEuler(5),destPoseEuler(6),swivel,destPoseEuler(1),destPoseEuler(2),destPoseEuler(3));
+%     toc
+    
     Q(2,4) = -Q(1,4);
     Q(3,4) = -Q(1,4);
     Q(4,4) = Q(1,4);
@@ -203,15 +234,37 @@ Q(5:8,1:4) = Q(1:4,1:4); % duplicate the values of the first angles on the last 
 %          [ sin(Q(1,4)),  cos(Q(1,4)),  0,    0];...
 %          [           0,           0,  0,    1]];   
 
-c1 = cos(Q(1,1)); s1 = sin(Q(1,1));
-c2 = cos(Q(1,2)); s2 = sin(Q(1,2));
-c3 = cos(Q(1,3)); s3 = sin(Q(1,3));
-c4 = cos(Q(1,4)); s4 = sin(Q(1,4));
- 
-H_0_4 = [[ c1*s2*s4 - c4*(s1*s3 - c1*c2*c3), s4*(s1*s3 - c1*c2*c3) + c1*c4*s2, c3*s1 + c1*c2*s3,    420*c1*s2];...
-         [ c4*(c1*s3 + c2*c3*s1) + s1*s2*s4, c4*s1*s2 - s4*(c1*s3 + c2*c3*s1), c2*s1*s3 - c1*c3,    420*s1*s2];...
-         [                 c2*s4 - c3*c4*s2,                 c2*c4 + c3*s2*s4,           -s2*s3, 420*c2 + 360];...
-         [                                0,                                0,                0,            1]];
+% syms q1 q2 q3 q4
+% R_3_4 = [[ cos(q4), -sin(q4),  0];...
+%          [           0,           0, -1];...
+%          [ sin(q4),  cos(q4),  0]];
+
+
+
+%best for symbolic computation
+R_3_4 = [[ cos(Q(1,4)), -sin(Q(1,4)),  0];...
+         [           0,           0, -1];...
+         [ sin(Q(1,4)),  cos(Q(1,4)),  0]];
+
+
+
+H_0_4 = [[R_0_3*R_3_4,p_0_elbow];[0,0,0,1]]; 
+
+%best for numerical computation
+% c1 = cos(Q(1,1)); s1 = sin(Q(1,1)); 
+% c2 = cos(Q(1,2)); s2 = sin(Q(1,2));
+% c3 = cos(Q(1,3)); s3 = sin(Q(1,3));
+% c4 = cos(Q(1,4)); s4 = sin(Q(1,4));
+
+
+
+% H_0_4 = [[ c1*s2*s4 - c4*(s1*s3 - c1*c2*c3), s4*(s1*s3 - c1*c2*c3) + c1*c4*s2, c3*s1 + c1*c2*s3,    420*c1*s2];...
+%          [ c4*(c1*s3 + c2*c3*s1) + s1*s2*s4, c4*s1*s2 - s4*(c1*s3 + c2*c3*s1), c2*s1*s3 - c1*c3,    420*s1*s2];...
+%          [                 c2*s4 - c3*c4*s2,                 c2*c4 + c3*s2*s4,           -s2*s3, 420*c2 + 360];...
+%          [                                0,                                0,                0,            1]]; %best for numerical computation
+
+     
+
 
 R_0_4 = H_0_4(1:3,1:3);
 
@@ -224,13 +277,16 @@ R_4_7 = transpose(R_0_4)*R_0_7;
 hz = R_4_7(3,3);
 hy = R_4_7(2,3);
 hx = R_4_7(1,3);
-fz = R_4_7(3,1);
-fx = R_4_7(1,1);
-gz = R_4_7(3,2);
-gx = R_4_7(1,2);
+% fz = R_4_7(3,1);
+fy = R_4_7(2,1);
+% fx = R_4_7(1,1);
+% gz = R_4_7(3,2);
+% gx = R_4_7(1,2);
+gy = R_4_7(2,2);
 
-% q5 = atan2(-hz, hx) (+pi)
+% q5 = atan2(-hz, hx) % (+pi)
 Q(1,5) = atan2(-hz, hx); % shoulder right, elbow right, wrist right
+
 Q(2,5) = Q(1,5)+pi; % shoulder right, elbow left, wrist right
 Q(3,5) = Q(2,5);           % shoulder left, elbow left, wrist right
 Q(4,5) = Q(1,5);           % shoulder left, elbow right, wrist right
@@ -240,7 +296,10 @@ Q(7,5) = Q(1,5);      % shoulder left, elbow left, wrist left
 Q(8,5) = Q(2,5);      % shoulder left, elbow right, wrist left
 
 % q6 = atan2(hx*c5-hz*s5,hy)
-Q(1,6) = atan2(hx*cos(Q(1,5))-hz*sin(Q(1,5)), hy);
+% Q(1,6) = atan2(hx*cos(Q(1,5))-hz*sin(Q(1,5)), hy)
+% Q(1,6) = atan2(sqrt(hx^2+hz^2),hy)
+Q(1,6) = atan2(sqrt(1-hy^2),hy);
+
 Q(2,6) = Q(1,6);
 Q(3,6) = Q(1,6);
 Q(4,6) = Q(1,6);
@@ -250,7 +309,9 @@ Q(7,6) = Q(5,6);
 Q(8,6) = Q(5,6);
 
 % q7 = atan2(-fz*c5-fx*s5,-gz*c5-gx*s5)
-Q(1,7) = atan2(-fz*cos(Q(1,5))-fx*sin(Q(1,5)),-gz*cos(Q(1,5))-gx*sin(Q(1,5)));
+% Q(1,7) = atan2(-fz*cos(Q(1,5))-fx*sin(Q(1,5)),-gz*cos(Q(1,5))-gx*sin(Q(1,5)))
+Q(1,7) = atan2(gy,-fy);
+
 Q(2,7) = Q(1,7);
 Q(3,7) = Q(1,7);
 Q(4,7) = Q(1,7);

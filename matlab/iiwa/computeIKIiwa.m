@@ -32,18 +32,19 @@ p_0_wrist = H_0_6(1:3,4);
 
 lUpperArm = 420;
 lForeArm = 400;
-
 L = norm(p_0_wrist-p_0_shoulder);
-if L > lUpperArm + lForeArm
-    disp('unreachable target...'); 
-    % TODO : do something about that
-    return;
-elseif L == lUpperArm + lForeArm
-    disp ('arm fully extended : singularity ...');
-    % TODO : do something about that
-    return;
-end
 
+if false
+    if L > lUpperArm + lForeArm
+        disp('unreachable target...'); 
+        % TODO : do something about that
+        return;
+    elseif L == lUpperArm + lForeArm
+        disp ('arm fully extended : singularity ...');
+        % TODO : do something about that
+        return;
+    end
+end
 %-------------------------------------
 % knowing the lUpperArm and lForeArm as well as swivelDeg, compute pElbow
 %-------------------------------------
@@ -89,7 +90,9 @@ p_0_elbow = p_0_shoulder + n*l1 + R * ( u *cos(swivel) + v * sin(swivel) );
 % relate these solutions to the status of the robot. the eight
 % configurations will be gathered in a configuration matrix 'Q' with 8
 % lines and 9 columns.
-Q = zeros(8,9);
+
+% Q = zeros(8,9);
+
 % z0 = H_w_0(1:3,3);
 % z7 = H_w_7(1:3,3);
 SE = p_0_elbow - p_0_shoulder;
@@ -153,7 +156,7 @@ if (isequal([0;0;0], x4-x3))
     Q(4,4) = 0;
 else
     %         Q(1,4) = real(asin(dot(cross(x3, x4),z4)));
-    Q(1,4) = real(atan2(dot(cross(x3, x4),z4),dot(x3,x4)));
+    Q(1,4) = real(atan2(dot(cross(x3, x4),z4),dot(x3,x4))); % can be simpler ! (cosine law)
     Q(2,4) = -Q(1,4);
     Q(3,4) = -Q(1,4);
     Q(4,4) = Q(1,4);
