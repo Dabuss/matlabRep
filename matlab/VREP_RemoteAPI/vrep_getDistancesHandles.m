@@ -1,4 +1,5 @@
-function [distancesHandles,distancesNames] = getVrepDistancesHandles(clientID,vrep)
+function [distancesHandles,distancesNames] = vrep_getDistancesHandles(clientID,vrep)
+
 % retrieves distances handles in vector distancesHandles and their corresponding
 % names in cell array distancesNames
     
@@ -11,7 +12,7 @@ function [distancesHandles,distancesNames] = getVrepDistancesHandles(clientID,vr
     [ret,distancesHandles(6)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_EE_KMR', vrep.simx_opmode_blocking);
     [ret,distancesHandles(7)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_EE_link0', vrep.simx_opmode_blocking);
     [ret,distancesHandles(8)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_EE_link1', vrep.simx_opmode_blocking);
-    [ret,distancesHandles(9)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_EE_link2', vrep.simx_opmode_blocking);
+    [ret,distancesHandles(9)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_EE_link2', vrep.simx_opmode_blocking); % we assume here that the EE can't collide with the forearm (which may be completely wrong)
     
     [ret,distancesHandles(10)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_KMR_scene', vrep.simx_opmode_blocking);
     [ret,distancesHandles(11)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link0_scene', vrep.simx_opmode_blocking);
@@ -20,9 +21,9 @@ function [distancesHandles,distancesNames] = getVrepDistancesHandles(clientID,vr
     [ret,distancesHandles(14)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link3_scene', vrep.simx_opmode_blocking);
     [ret,distancesHandles(15)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link4_scene', vrep.simx_opmode_blocking);
     [ret,distancesHandles(16)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link5_scene', vrep.simx_opmode_blocking);
-    [ret,distancesHandles(17)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link6_scene', vrep.simx_opmode_blocking);
-    [ret,distancesHandles(18)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_linkFlange_scene', vrep.simx_opmode_blocking);
-    [ret,distancesHandles(19)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_EE_scene', vrep.simx_opmode_blocking);
+    [ret,distancesHandles(17)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link6_scene', vrep.simx_opmode_blocking); 
+    [ret,distancesHandles(18)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_linkFlange_scene', vrep.simx_opmode_blocking); % same as below
+    [ret,distancesHandles(19)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_EE_scene', vrep.simx_opmode_blocking); % useless as the EE is made to be able to reach a destination without colliding with the rest
     
     distancesNames = {'AutoCol_Distance_link3_KMR';...
                       'AutoCol_Distance_link4_KMR';...

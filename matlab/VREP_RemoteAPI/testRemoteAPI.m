@@ -16,18 +16,18 @@ if displayInVrep
         
         
         % retrieve joint handles
-        [joints_handles, joints_names] = getVrepJointHandles(clientID,vrep);
+        [joints_handles, joints_names] = vrep_getJointsHandles(clientID,vrep);
         
         % retrieve KMR dummy handle
-        [ret,B_handle] = 
+        [ret,B_handle] = vrep.simxGetObjectHandle(clientID,'B',vrep.simx_opmode_blocking);
         
         % retrieve tasks handles
-        [tasks_handles,tasks_names] = getVrepTasksHandles(clientID,vrep);
+        [tasks_handles,tasks_names] = vrep_getTasksHandles(clientID,vrep);
 
         % retrieve distances handles
-        [distances_handles,distances_names] = getVrepDistancesHandles(clientID,vrep);
+        [distances_handles,distances_names] = vrep_getDistancesHandles(clientID,vrep);
         
-        
+        setVrep
         
         %% Set Joint angles on vrep 
 %         for i=1:10
