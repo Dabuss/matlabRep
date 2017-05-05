@@ -16,8 +16,8 @@ p_0_shoulder = [0;0;360];
 % ----------------------------------------------
 % Compute wrist position
 % ----------------------------------------------
-H_0_tcp = poseEulerZYXToTransf(destPoseEuler);
-H_7_tcp = poseEulerZYXToTransf(tcpPoseEuler);
+H_0_tcp = peaZYX_to_transformation(destPoseEuler);
+H_7_tcp = peaZYX_to_transformation(tcpPoseEuler);
 % H_6_7 = [1, 0,  0,  0   ;...
 %          0, 0, -1, -152 ;...
 %          0, 1,  0,  0   ;...
@@ -25,7 +25,7 @@ H_7_tcp = poseEulerZYXToTransf(tcpPoseEuler);
 H_6_7 = [1, 0,  0,  0   ;...
          0, 0, -1, -126 ;...
          0, 1,  0,  0   ;...
-         0, 0,  0,  1   ]; % For iiwa 14 with pneumatic touch flange
+         0, 0,  0,  1   ]; % For iiwa 14 with electric flange
 
 H_0_7 = H_0_tcp*inverseTransformation(H_7_tcp);
 H_0_6 = H_0_7*inverseTransformation(H_6_7);

@@ -70,7 +70,7 @@ H_0_7= ...
 
 
 
-H_7_tcp = poseEulerZYXToTransf(tcpPoseEuler);
+H_7_tcp = peaZYX_to_transformation(tcpPoseEuler);
 
 H_0_tcp = H_0_7*H_7_tcp;
 

@@ -15,8 +15,9 @@ function eaZYX = Rmat_to_eaZYX(rmat)
 %         b = atan2(-rmat(3,1), sy);
 %         c = atan2(rmat(2,1), rmat(1,1));
           eaZYX(2) = atan2(-rmat(3,1),sy);
-          eaZYX(1) = atan2(rmat(2,1)/cos(b),rmat(1,1)/cos(b));
-          eaZYX(3) = atan2(rmat(3,2)/cos(b), rmat(3,3)/cos(b));
+          cb = cos(eaZYX(2));
+          eaZYX(1) = atan2(rmat(2,1)/cb,rmat(1,1)/cb);
+          eaZYX(3) = atan2(rmat(3,2)/cb, rmat(3,3)/cb);
     else 
         eaZYX(1) = atan2(-rmat(2,3), rmat(2,2));
         eaZYX(2) = atan2(-rmat(3,1), sy);

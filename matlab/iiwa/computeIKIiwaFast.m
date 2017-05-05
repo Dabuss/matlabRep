@@ -1,12 +1,11 @@
 function [Q] = computeIKIiwaFast( tcpOffsetEuler, destPoseEuler, swivel )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%This function is designed for iiwa mounted with pneumatic touch flange!!!
 
-H_7_tcp = poseEulerZYXToTransf(tcpOffsetEuler);
-H_0_tcp = poseEulerZYXToTransf(destPoseEuler);
+H_7_tcp = peaZYX_to_transformation(tcpOffsetEuler);
+H_0_tcp = peaZYX_to_transformation(destPoseEuler);
 H_0_7 = H_0_tcp*inverseTransformation(H_7_tcp);
 
-pose = transformationToPoseEulerZYX(H_0_7);
+pose = transformation_to_peaZYX(H_0_7);
 x = pose(1); y = pose(2); z = pose(3); a = pose(4); b = pose(5); c = pose(6);
 
 

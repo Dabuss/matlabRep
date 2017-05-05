@@ -90,7 +90,7 @@ H_W_B = [ct, -st, 0, x_b; ...
 H_B_W = inverseTransformation(H_W_B); %TODO, hardcode this
 
 DeltaEE = [0,0,0,0,0,0];
-H_tcp_7 = inverseTransformation(poseEulerZYXToTransf(DeltaEE));
+H_tcp_7 = inverseTransformation(peaZYX_to_transformation(DeltaEE));
 p_7_6 = [0;0;-126;1]; % normal flange -------------------------    /!\flange dependant!!!!!!!
 p_tcp_6 = H_tcp_7*p_7_6; % wrist position seen from tcp . TODO hardcode this
 p_B_shoulder = [0;0;180;1]; % shoulder position seen from robot base . TODO hardcode this
@@ -131,7 +131,7 @@ for i = 1:ntasks
     % Beta_max, for each of the eight configs
     
 %     [q, D_Phi, indD_Phi] = computeIKIiwa2([0,0,0,0,0,0],tasks.getTask(i).getPose(),betas(i)); % D_Phi is negative when a configuration (of the 8 possibilities) is within joint limits, positive when not within joint limits and zero when exactely on joint limits. Behaviour is the same as with the distance
-    [q, D_Phi, indD_Phi] = computeIKIiwa2([0,0,0,0,0,0],transformationToPoseEulerZYX(tasks{i}),betas(i));
+    [q, D_Phi, indD_Phi] = computeIKIiwa2([0,0,0,0,0,0],transformation_to_peaZYX(tasks{i}),betas(i));
     c(ntasks+i) = D_Phi*180/pi;
     
 end
