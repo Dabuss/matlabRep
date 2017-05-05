@@ -27,17 +27,21 @@ if displayInVrep
         % retrieve distances handles
         [distances_handles,distances_names] = vrep_getDistancesHandles(clientID,vrep);
         
-        setVrep
         
-        %% Set Joint angles on vrep 
-%         for i=1:10
-%             conf = 360*(1/2 - rand(1,7));
-%             setIiwaConfigurationOnVrep(vrep, clientID, conf, jointHandles);
-%             pause(0.1);
-%         end
-%         
-%       
-jp1=0.0;
+        conf = [(1/2-rand(1,2))*3,(1/2-rand())*2*pi,(1/2-rand(1,7))*2*pi];
+        % set KMR config
+        vrep_setKMRConfiguration(vrep, clientID, conf(1:3), B_handle);
+        
+        % set iiwa config
+        vrep_setIiwaConfiguration(vrep, clientID, conf(4:10), joints_handles);
+        
+        % set full system config
+        vrep_setFullSystemConfiguration(vrep, clientID, conf, B_handle, joint_handles);
+        
+        % get tasks EulerZYX poses
+        tasks = vrep_getTasksEulerZYXPoses(clientID, vrep, tasks_handles);
+
+
 % vrep.simxGetJointPosition(clientID,jointHandles(1),jp1,vrep.simx_opmode_buffer)
 [ret,jp1]=vrep.simxGetJointPosition(clientID,joints_handles(1),vrep.simx_opmode_streaming);
 jp1

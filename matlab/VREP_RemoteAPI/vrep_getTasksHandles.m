@@ -13,7 +13,7 @@ function [taskHandles,taskNames] = vrep_getTasksHandles(clientID,vrep)
     % extract thos dummies who contain the characters 'task' within their
     % name
     taskNames = sortedDummyNames(not(cellfun('isempty', strfind(sortedDummyNames, 'task')))); % array of sorted strings containing the names of the tasks
-    taskHandles = sortedDummies(not(cellfun('isempty', strfind(sortedDummyNames, 'task')))); % vector of tasks handles sorted in the same order as tasksNames
+    taskHandles = sortedDummies(not(cellfun('isempty', strfind(sortedDummyNames, 'task'))))'; % vector of tasks handles sorted in the same order as tasksNames
 
 
 end
