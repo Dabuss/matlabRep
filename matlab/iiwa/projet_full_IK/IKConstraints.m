@@ -1,4 +1,4 @@
-function [c,ceq] = IKConstraints(x,tasks,obstacles,maxDeflections,forceCapa)
+function [c,ceq] = IKConstraints(x,tasks,vrepAccessHelper,obstacles,maxDeflections,forceCapa)
 
 
 % x                     are the positions in redundancy space
@@ -37,7 +37,8 @@ function [c,ceq] = IKConstraints(x,tasks,obstacles,maxDeflections,forceCapa)
 %
 % tasks = {task_1, task_2, ... task_m} where task_m0 contains at least the
 % associated pose_m0 where the task occurs and wrench_0 which describes the
-% force interaction occuring at task_m0 with the environment.
+% force interaction occuring at task_m0 with the environment. 
+%   the task is given with ZYX euler convention
 %
 % obstacles {obstacle_1,obstacle_2, ... , obstacle_o} where obstacle_o0 is
 % a structured way of describing the obstacles
@@ -62,6 +63,10 @@ x_b = x(1); % 1st coordinate of the robot base position in ref frame world
 y_b = x(2); % 2nd coordinate of the robot base position in ref frame world
 theta_b = setAnglesBetweenMinusPiAndPi(x(3)); % angle of the robot base position around z_w 
 betas = setAnglesBetweenMinusPiAndPi(x(3:end)); % redundancy (/swivel) angles for each task (between -pi and pi)
+ndistances = length(distances_handles);
+
+% set KMR config
+vrep_setKMRConfiguration(vrep,clientID,conf,B_handle)
 
 % ntasks = tasks.getLength();
 ntasks = length(tasks);
@@ -97,14 +102,14 @@ p_B_shoulder = [0;0;180;1]; % shoulder position seen from robot base . TODO hard
 
 for i = 1:ntasks
 %     H_W_ti = tasks.getTask(i).getTransf();
-    H_W_ti = tasks{i};
+    H_W_ti = peaZYX_to_transformation(tasks{i});
     p_B_wrist = H_B_W*H_W_ti*p_tcp_6; % compute hypothetical wrist position seen from robot base
     d = norm(p_B_wrist(1:3)-p_B_shoulder(1:3)); % compute distance between wrist and shoulder
     c(0+i) = - ( (d<(rmin+rmax)/2)*(d-rmin) + (d>=(rmin+rmax)/2)*(rmax-d) ); % c is negative when d€[rmin,rmax] and positive when out. The function is continuous, prolongable in (rmin+rmax)/2 and reaches its minimum there.
-end
+
 
 %% analytical IK + check limits
-for i = 1:ntasks
+
 %     q = computeIKfromShoulderWristTask(p_B_wrist,p_B_shoulder,R_0_7); % TODO . inspire from computeIKIiwa1
 
     %     Q = [[      q(1),  q(2),      q(3),  q(4),      q(5),  q(6),      q(7)];...
@@ -131,9 +136,11 @@ for i = 1:ntasks
     % Beta_max, for each of the eight configs
     
 %     [q, D_Phi, indD_Phi] = computeIKIiwa2([0,0,0,0,0,0],tasks.getTask(i).getPose(),betas(i)); % D_Phi is negative when a configuration (of the 8 possibilities) is within joint limits, positive when not within joint limits and zero when exactely on joint limits. Behaviour is the same as with the distance
-    [q, D_Phi, indD_Phi] = computeIKIiwa2([0,0,0,0,0,0],transformation_to_peaZYX(tasks{i}),betas(i));
+    [q, D_Phi, indD_Phi] = computeIKIiwa2([0,0,0,0,0,0],tasks{i},betas(i));
     c(ntasks+i) = D_Phi*180/pi;
     
+%% distance checks
+c(ntasks
 end
 
 c(1:ntasks) = c(1:ntasks) + 20;

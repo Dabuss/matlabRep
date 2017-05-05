@@ -23,7 +23,7 @@ if displayInVrep
         
         % retrieve tasks handles
         [tasks_handles,tasks_names] = vrep_getTasksHandles(clientID,vrep);
-
+        
         % retrieve distances handles
         [distances_handles,distances_names] = vrep_getDistancesHandles(clientID,vrep);
         
@@ -36,26 +36,15 @@ if displayInVrep
         vrep_setIiwaConfiguration(vrep, clientID, conf(4:10), joints_handles);
         
         % set full system config
-        vrep_setFullSystemConfiguration(vrep, clientID, conf, B_handle, joint_handles);
+        vrep_setFullSystemConfiguration(vrep, clientID, -conf, B_handle, joints_handles);
         
         % get tasks EulerZYX poses
         tasks = vrep_getTasksEulerZYXPoses(clientID, vrep, tasks_handles);
-
-
-% vrep.simxGetJointPosition(clientID,jointHandles(1),jp1,vrep.simx_opmode_buffer)
-[ret,jp1]=vrep.simxGetJointPosition(clientID,joints_handles(1),vrep.simx_opmode_streaming);
-jp1
-[ret,h]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_KMR_scene', vrep.simx_opmode_blocking)
-
-tic
-for i=1:100
-%     [ret,jp1]=vrep.simxGetJointPosition(clientID,jointHandles(1),vrep.simx_opmode_streaming);
-%     jp1*180/pi;
-        [ret, d_KMR_env] = vrep.simxReadDistance(clientID, h, vrep.simx_opmode_streaming);
-        d_KMR_env
-        pause(0.2);
-end
-toc   
+        
+        % get distances from collision and autocollision
+        distances_values = vrep_getDistancesToObstacles(clientID, vrep, distances_handles);
+        
+        
         vrep.simxFinish(clientID);
     else
         disp('Failed connecting to remote API server');

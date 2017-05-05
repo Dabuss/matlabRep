@@ -25,6 +25,5 @@ else % abs(s2) = 1 <=> theta_2 = pi/2 ou -pi/2
     end
 end
     
-endll
 
 
