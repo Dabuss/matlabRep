@@ -1,4 +1,4 @@
-function [distancesHandles,distancesNames] = vrep_getDistancesHandles(clientID,vrep)
+function [distancesHandles,distancesNames, ret] = vrep_getDistancesHandles(clientID,vrep)
 
 % retrieves distances handles in vector distancesHandles and their corresponding
 % names in cell array distancesNames

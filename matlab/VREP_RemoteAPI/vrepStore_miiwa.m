@@ -1,4 +1,4 @@
-classdef vrepStore_miiwa
+classdef vrepStore_miiwa < handle
     
     properties
         %vrep specific
@@ -38,28 +38,47 @@ classdef vrepStore_miiwa
                 disp(' ');
                 
                 % retrieve joint handles
-                [obj.joints_handles, obj.joints_names] = vrep_getJointsHandles(obj.clientID,obj.vrep);
-                disp('    -iiwa joint handles retrieved');
+                [obj.joints_handles, obj.joints_names, ret] = vrep_getJointsHandles(obj.clientID,obj.vrep);
+                if ~isempty(obj.joints_handles)
+                    disp('    -iiwa joints handles retrieved');
+                else
+                    disp('    -error on iiwa joints handles retrieval');
+                end
                 
                 
                 % retrieve KMR dummy handle
                 [ret,obj.B_handle] = obj.vrep.simxGetObjectHandle(obj.clientID,'B',obj.vrep.simx_opmode_blocking);
-                disp('    -KMR Base handles retrieved');
-                
+                if ret == 0
+                    disp('    -KMR Base handle retrieved');
+                else
+                    disp('    -error on KMR Base handle retrieval');
+                end
                 
                 % retrieve distances handles
-                [obj.distances_handles,obj.distances_names] = vrep_getDistancesHandles(obj.clientID,obj.vrep);
-                disp('    -distances handles retrieved');
-                
-                
-                % get tasks EulerZYX poses
-                obj.tasks = vrep_getTasksEulerZYXPoses(obj.clientID, obj.vrep, obj.tasks_handles);
-                disp('    -tasks handles retrieved');
-                
+                [obj.distances_handles,obj.distances_names, ret] = vrep_getDistancesHandles(obj.clientID,obj.vrep);
+                if ret == 0
+                    disp('    -distances handles retrieved');
+                else
+                    disp('    -error on distances handles retrieval');
+                end
                 
                 % retrieve tasks handles
-                [obj.tasks_handles,obj.tasks_names] = vrep_getTasksHandles(obj.clientID,obj.vrep);
-                disp('    -tasks poses retrieved');
+                [obj.tasks_handles,obj.tasks_names, ret] = vrep_getTasksHandles(obj.clientID,obj.vrep);
+                if ~isempty(obj.tasks_handles)
+                    disp('    -tasks handles retrieved');
+                else
+                    disp('    -error on tasks handles retrieval');
+                end
+                
+                % get tasks EulerZYX poses
+                [obj.tasks,ret] = vrep_getTasksEulerZYXPoses(obj.clientID, obj.vrep, obj.tasks_handles);
+                if ~isempty(obj.tasks)
+                    disp('    -tasks poses retrieved');
+                else
+                    disp('    -error on tasks poses retrieval');
+                end
+                
+                
                 
                 disp(' ');
                 disp('OK, you may start using me now...');
@@ -122,7 +141,7 @@ classdef vrepStore_miiwa
         %---------------------
         % get distances
         %---------------------
-        function distances_values = getDistancesAndNames(obj)
+        function distances_values = getDistancesToObstacles(obj)
             % conf in m and rad
             distances_values = vrep_getDistancesToObstacles(obj.clientID, obj.vrep, obj.distances_handles);
         end
@@ -167,6 +186,20 @@ classdef vrepStore_miiwa
         end
         
         
+        %---------------------
+        % generate random configuration for the entire system
+        %---------------------
+        function conf = getRandomValidConfig(obj)
+            conf = [(1/2-rand(1,2))*3,...       % x_b and y_b
+                    (1/2-rand())*2*pi,...       % theta_b
+                    (1/2-rand())*170*pi/180,... % q1
+                    (1/2-rand())*120*pi/180,... % q2
+                    (1/2-rand())*170*pi/180,... % q3
+                    (1/2-rand())*120*pi/180,... % q4
+                    (1/2-rand())*170*pi/180,... % q5
+                    (1/2-rand())*120*pi/180,... % q6
+                    (1/2-rand())*175*pi/180];   % q7
+        end
         
     end
 end

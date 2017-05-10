@@ -14,5 +14,5 @@ vrep.simxPauseCommunication(clientID,1);
 r = vrep.simxSetObjectPosition(clientID,B_handle,-1,[conf(1),conf(2),z_0_B],vrep.simx_opmode_oneshot); % set x_b and y_b
 r = vrep.simxSetObjectOrientation(clientID,B_handle,-1,[0,0,conf(3)],vrep.simx_opmode_oneshot); % set theta_b
 vrep.simxPauseCommunication(clientID,0);
-        
+% pause(0.1);
 end

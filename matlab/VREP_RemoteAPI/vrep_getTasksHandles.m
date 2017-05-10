@@ -1,4 +1,4 @@
-function [taskHandles,taskNames] = vrep_getTasksHandles(clientID,vrep)
+function [taskHandles,taskNames,ret] = vrep_getTasksHandles(clientID,vrep)
     % retrieves handles corresponding to tasks (on VREP, these tasks have
     % to contain 'task') and sort them in alphabetical order. also return
     % their correponding VREP names in taskNames cell array.

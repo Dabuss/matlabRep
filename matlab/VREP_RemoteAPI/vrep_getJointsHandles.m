@@ -1,4 +1,4 @@
-function [ jointsHandles, jointNames ] = vrep_getJointsHandles(clientID,vrep)
+function [ jointsHandles, jointNames, ret] = vrep_getJointsHandles(clientID,vrep)
 % retrieves joint handles in vector jointsHandles and their corresponding
 % names in cell array jointNames
 
