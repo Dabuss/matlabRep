@@ -3,7 +3,7 @@ function [distancesHandles,distancesNames, ret] = vrep_getDistancesHandles(clien
 % retrieves distances handles in vector distancesHandles and their corresponding
 % names in cell array distancesNames
     
-    distancesHandles = zeros(19,1);
+    distancesHandles = zeros(17,1);
     [ret,distancesHandles(1)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_link3_KMR', vrep.simx_opmode_blocking);
     [ret,distancesHandles(2)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_link4_KMR', vrep.simx_opmode_blocking);
     [ret,distancesHandles(3)]=vrep.simxGetDistanceHandle(clientID, 'AutoCol_Distance_link5_KMR', vrep.simx_opmode_blocking);
@@ -22,8 +22,6 @@ function [distancesHandles,distancesNames, ret] = vrep_getDistancesHandles(clien
     [ret,distancesHandles(15)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link4_scene', vrep.simx_opmode_blocking);
     [ret,distancesHandles(16)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link5_scene', vrep.simx_opmode_blocking);
     [ret,distancesHandles(17)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_link6_scene', vrep.simx_opmode_blocking); 
-    [ret,distancesHandles(18)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_linkFlange_scene', vrep.simx_opmode_blocking); % same as below
-    [ret,distancesHandles(19)]=vrep.simxGetDistanceHandle(clientID, 'Col_Distance_EE_scene', vrep.simx_opmode_blocking); % useless as the EE is made to be able to reach a destination without colliding with the rest
     
     distancesNames = {'AutoCol_Distance_link3_KMR';...
                       'AutoCol_Distance_link4_KMR';...
@@ -41,9 +39,7 @@ function [distancesHandles,distancesNames, ret] = vrep_getDistancesHandles(clien
                       'Col_Distance_link3_scene';...
                       'Col_Distance_link4_scene';...
                       'Col_Distance_link5_scene';...
-                      'Col_Distance_link6_scene';...
-                      'Col_Distance_linkFlange_scene';...
-                      'Col_Distance_EE_scene'};
+                      'Col_Distance_link6_scene'};
     
     
 

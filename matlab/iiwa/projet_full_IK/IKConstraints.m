@@ -58,7 +58,7 @@ H_b = 703.07; % platform height (mm) {TODO : hardcode}
 rmin = 410.3656905736638; % minimum distance between shoulder and wrist ( = sqrt(400^2+420^2-2*400*420*cos(60*pi/180)) )
 rmax = 820; % maximum distance between shoulder and wrist ( = 420 + 400 )
 distance_obstacle_threshold = 0.1; % (m) system can't get closer to an obstacle than distance_obstacle_threshold 
-distance_autocollision_threshold = 0.001; % (m) same threshold but for autocollision
+distance_autocollision_threshold = 0.1; % (m) same threshold but for autocollision
 % extraction from inputs
 x_b = x(1); % 1st coordinate of the robot base position in ref frame world
 y_b = x(2); % 2nd coordinate of the robot base position in ref frame world
@@ -96,7 +96,7 @@ H_W_B = [ct, -st, 0, x_b*1000; ...
          0 ,   0, 0,   1];
 H_B_W = inverseTransformation(H_W_B); %TODO, hardcode this
 
-DeltaEE = [0,0,0,0,0,0];
+DeltaEE = vrep_store.tcp_offset;
 H_tcp_7 = inverseTransformation(peaZYX_to_transformation(DeltaEE));
 p_7_6 = [0;0;-126;1]; % normal flange -------------------------    /!\flange dependant!!!!!!!
 p_tcp_6 = H_tcp_7*p_7_6; % wrist position seen from tcp . TODO hardcode this
@@ -114,10 +114,6 @@ for ind_task = 1:ntasks
     p_B_wrist = H_B_W*H_W_ti*p_tcp_6; % compute hypothetical wrist position seen from robot base
     d = norm(p_B_wrist(1:3)-p_B_shoulder(1:3)); % compute distance between wrist and shoulder
     c(0+ind_task) = - ( (d<(rmin+rmax)/2)*(d-rmin) + (d>=(rmin+rmax)/2)*(rmax-d) ); % c is negative when d€[rmin,rmax] and positive when out. The function is continuous, prolongable in (rmin+rmax)/2 and reaches its minimum there.
-    if ind_task == 1
-        xytheta = x(1:3);
-        d;
-    end
 end
 
 for ind_task = 1:ntasks
@@ -137,35 +133,48 @@ for ind_task = 1:ntasks
 %             c((2*ntasks + (ind_task-1)*ndistances+1):(2*ntasks + (ind_task-1)*ndistances+9)) = -epsilon; %
 %             % collisions
 %             c((2*ntasks + (ind_task-1)*(ndistances)+10):(2*ntasks + (ind_task-1)*(ndistances)+ndistances)) = -epsilon;
-            c(ntasks+1:end) = -eps;
+            
+%             c(ntasks+1:end) = -eps;
+            c(ntasks+1:end) = rand();
         end
         
     else
-%% analytical IK + check limits
-    H_B_tcp = H_B_W*H_W_ti;
-%     transformation_to_peaZYX(H_W_ti)
-    [q, D_Phi, indD_Phi] = computeIKIiwa2(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
-    if imag(q) == 1
-        c(ntasks:end) = -eps;
-        break;
-    end
-    
-    c(ntasks+ind_task) = D_Phi*180/pi;
-    
-%% distance checks
-    
-    vrep_store.setIiwaConfiguration(q(1,1:7));
-    distances_values = vrep_store.getDistancesToObstacles();
-    
-    % autocollisions
-    c((2*ntasks + (ind_task-1)*ndistances+1):(2*ntasks + (ind_task-1)*ndistances+9)) = -(distances_values(1:9) - distance_autocollision_threshold)*1000; % (in millimeter) autocollision distances. constraints should be negative when it's alright and +distance_autocollision_threshold when it's not
-    
-    % collisions
-    c((2*ntasks + (ind_task-1)*(ndistances)+10):(2*ntasks + (ind_task-1)*(ndistances)+ndistances)) = -(distances_values(10:ndistances) - distance_obstacle_threshold)*1000; % (in millimeter) distances to obstacles constraints should be negative when it's alright and +distance_threshold when it's not
+        %% analytical IK + check limits
+        H_B_tcp = H_B_W*H_W_ti;
+        %     transformation_to_peaZYX(H_W_ti)
+        [q, D_Phi, indD_Phi] = computeIKIiwa2(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
+        if imag(q) == 1
+            c(ntasks:end) = -eps;
+            break;
+        end
+        
+        c(ntasks+ind_task) = D_Phi*180/pi;
+        
+        %% distance checks
+        
+        vrep_store.setIiwaConfiguration(q(indD_Phi,1:7));
+        distances_values = vrep_store.getDistancesToObstacles();
+        
+        if false
+            disp(['task #',num2str(ind_task)])
+            for i=1:ndistances
+                disp([vrep_store.distances_names(i), num2str(distances_values(i))])
+            end
+        end
+        
+        % autocollisions
+        c((2*ntasks + (ind_task-1)*ndistances+1):(2*ntasks + (ind_task-1)*ndistances+9)) = -(distances_values(1:9) - rand()*distance_autocollision_threshold)*1000; % (in millimeter) autocollision distances. constraints should be negative when it's alright and +distance_autocollision_threshold when it's not
+        
+        % collisions
+        c((2*ntasks + (ind_task-1)*(ndistances)+10):(2*ntasks + (ind_task-1)*(ndistances)+ndistances)) = -(distances_values(10:ndistances) - rand()*distance_obstacle_threshold)*1000; % (in millimeter) distances to obstacles constraints should be negative when it's alright and +distance_threshold when it's not
+%         if any(c>1)
+%             c
+%         end
     end
     
 end
 
+% ceq = abs(c(1:ntasks)) + c(1:ntasks);
 ceq = [];
 
 

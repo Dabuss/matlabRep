@@ -5,12 +5,16 @@ classdef vrepStore_miiwa < handle
         vrep;
         clientID;
         
-        %joint handles
+        %joint and Base
         joints_handles;
         joints_names;
         B_handle;
         
-        %distance object handles
+        % end effector
+        tcp_handle;
+        tcp_offset;
+        
+        %distance object
         distances_handles;
         distances_names;
         
@@ -18,6 +22,7 @@ classdef vrepStore_miiwa < handle
         tasks;
         tasks_handles
         tasks_names;
+        
         
         
     end
@@ -52,6 +57,22 @@ classdef vrepStore_miiwa < handle
                     disp('    -KMR Base handle retrieved');
                 else
                     disp('    -error on KMR Base handle retrieval');
+                end
+                
+                 % retrieve tcp handle
+                [ret, obj.tcp_handle] = obj.vrep.simxGetObjectHandle(obj.clientID,'TCP',obj.vrep.simx_opmode_blocking);
+                if ret == 0
+                    disp('    -iiwa tcp handle retrieved');
+                else
+                    disp('    -error on tcp handle retrieval');
+                end
+                
+                % retrieve tcp offset
+                [obj.tcp_offset, ret] = vrep_getTcpOffset(obj.clientID,obj.vrep, obj.tcp_handle);
+                if ret == 0
+                    disp('    -iiwa tcp offset retrieved');
+                else
+                    disp('    -error on tcp offset retrieval');
                 end
                 
                 % retrieve distances handles
