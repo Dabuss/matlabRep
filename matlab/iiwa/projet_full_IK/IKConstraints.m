@@ -158,7 +158,7 @@ for ind_task = 1:ntasks
         if false
             disp(['task #',num2str(ind_task)])
             for i=1:ndistances
-                disp([vrep_store.distances_names(i), num2str(distances_values(i))])
+                disp([vrep_store.distances_names(i), num2str(distances_values(i))]) 
             end
         end
         
