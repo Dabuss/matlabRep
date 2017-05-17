@@ -8,9 +8,10 @@ distances_values = zeros(ndistances,1);
  for i=1:ndistances
 %      [ret, distances_values(i)] = vrep.simxReadDistance(clientID, distances_handles(i), vrep.simx_opmode_streaming);
      [ret, d] = vrep.simxReadDistance(clientID, distances_handles(i), vrep.simx_opmode_streaming);
+%      [ret, d] = vrep.simxReadDistance(clientID, distances_handles(i), vrep.simx_opmode_blocking);
      distances_values(i) = d;
-%      pause(0.1)
- end
+%      pause(0.001)
+%  end
 
 end
 

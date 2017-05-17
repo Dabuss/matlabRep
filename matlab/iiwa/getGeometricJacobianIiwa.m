@@ -1,10 +1,10 @@
-function J_0 = getGeometricJacobianIiwa(config, tcp)
+function J_0 = getGeometricJacobianIiwa(config, tcpEulerZYX)
 % gemotric jacobian in base 0
 % angles are given in
 
-    Hs = getFkIiwa(config, tcp);
+    Hs = getFkIiwa(config, tcpEulerZYX);
 
-    J_0 = zeros(6,7);
+%     J_0 = zeros(6,7);
     for i = 1 : 7
         H_0_i = Hs{i};
         
