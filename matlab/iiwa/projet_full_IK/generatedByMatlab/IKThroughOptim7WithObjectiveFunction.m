@@ -1,5 +1,12 @@
-function [x,fval,exitflag,output,lambda,grad,hessian] = IKThroughOptim7WithObjectiveFunction(x0,FiniteDifferenceStepSize_Data)
+function [x,fval,exitflag,output,lambda,grad,hessian] = IKThroughOptim7WithObjectiveFunction(vrep_store)
 %% This is an auto generated MATLAB file from Optimization Tool.
+FiniteDifferenceStepSize_Data = 0.001*ones(length(vrep_store.tasks)+3,1);
+% x0 = zeros(length(vrep_store.tasks)+3,1);
+% x0 = [1;-1.4;-1.8;zeros(length(vrep_store.tasks),1)];
+x0 = [1.2;-1.3;-2.52;zeros(length(vrep_store.tasks),1)];
+
+%test avec collision au départ
+x0 = [2;-1.8;0;zeros(length(vrep_store.tasks),1)];
 
 %% Start with the default options
 options = optimoptions('fmincon');
@@ -9,4 +16,4 @@ options = optimoptions(options,'PlotFcn', {  @optimplotx @optimplotconstrviolati
 options = optimoptions(options,'Algorithm', 'active-set');
 options = optimoptions(options,'FiniteDifferenceStepSize', FiniteDifferenceStepSize_Data);
 [x,fval,exitflag,output,lambda,grad,hessian] = ...
-fmincon(@(x)IKOptimizer(x,vrep_store,1000),x0,[],[],[],[],[],[],@(x)IKConstraints(x,vrep_store,0),options);
+fmincon(@(x)IKOptimizer(x,vrep_store,100),x0,[],[],[],[],[],[],@(x)IKConstraints(x,vrep_store,0),options);

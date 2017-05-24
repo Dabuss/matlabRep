@@ -13,6 +13,9 @@ classdef vrepStore_miiwa < handle
         % end effector
         tcp_handle;
         tcp_offset;
+        m_EE; % mass EE
+        cog_EE; % center of gravity end effector
+        
         
         %distance object
         distances_handles;
@@ -26,6 +29,10 @@ classdef vrepStore_miiwa < handle
         %proximity sensors handles
         proximitySensors_handles
         proximitySensors_names
+        
+        
+        
+        
     end
     
     
@@ -75,6 +82,15 @@ classdef vrepStore_miiwa < handle
                 else
                     disp('    -error on tcp offset retrieval');
                 end
+                
+                % retrieve load data
+                [obj.cog_EE, obj.m_EE, ret] = vrep_getLoadData(obj.clientID,obj.vrep);
+                if ret == 0
+                    disp('    -iiwa load data retrieved');
+                else
+                    disp('    -error on load data retrieval');
+                end
+                
                 
                 % retrieve distances handles
                 [obj.distances_handles,obj.distances_names, ret] = vrep_getDistancesHandles(obj.clientID,obj.vrep);

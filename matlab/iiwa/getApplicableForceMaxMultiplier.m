@@ -8,8 +8,8 @@ Tmin = -Tmax;
 Tg = getGravityTorquesIiwa(config, m_EE, transG_EE);
 Tf = getTorquesFromSpatialForceIiwa(config, tcpEulerZYX, f);
 
-lambda = min(abs((Tf>0).*(Tmax-Tg)./Tf + (Tf<0).*(Tmin-Tg)./Tf),999999);
-
+lambdas = (abs(Tg)<Tmax).* (abs((Tf>0).*(Tmax-Tg)./Tf + (Tf<0).*(Tmin-Tg)./Tf));
+lambda = min(lambdas,999999);
 
 end
 
