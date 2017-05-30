@@ -1,4 +1,6 @@
-function [c,ceq] = IKConstraints(x,vrep_store,maxDeflections,forceCapa)
+function [v] = IKOptimizer2(x,vrep_store, multfactor)
+%UNTITLED Summary of this function goes here
+%   Detailed explanation goes here
 
 
 % x                     are the positions in redundancy space
@@ -54,26 +56,20 @@ function [c,ceq] = IKConstraints(x,vrep_store,maxDeflections,forceCapa)
 H_b = 703.07; % platform height (mm) {TODO : hardcode}
 rmin = 410.3656905736638; % minimum distance between shoulder and wrist ( = sqrt(400^2+420^2-2*400*420*cos(60*pi/180)) )
 rmax = 820; % maximum distance between shoulder and wrist ( = 420 + 400 )
-distance_collision_threshold = 0.5; % (m) system can't get closer to an obstacle than distance_obstacle_threshold 
-distance_autocollision_threshold = 0.5; % (m) same threshold but for autocollision
-default_constraint_value = 1000;
-
 
 % extraction from inputs
 x_b = x(1); % 1st coordinate of the robot base position in ref frame world
 y_b = x(2); % 2nd coordinate of the robot base position in ref frame world
 theta_b = setAnglesBetweenMinusPiAndPi(x(3)); % angle of the robot base position around z_w 
-betas = setAnglesBetweenMinusPiAndPi(x(3:end)); % redundancy (/swivel) angles for each task (between -pi and pi)
-ndistances = length(vrep_store.distances_handles);
+
 
 
 
 tasks = vrep_store.tasks;
 ntasks = length(tasks);
 
-N = (ndistances-1) + 1;
-% c = zeros( ntasks * (ndistances-1) + 2,1);
-c = zeros(N*ntasks + 2,1);
+ 
+c = zeros(ntasks,1);
 
 
 %         reach   minDistBetaPerTask   dKMR_scene     severalDistancesPerTasks   
@@ -102,142 +98,25 @@ p_tcp_6 = H_tcp_7*p_7_6; % wrist position seen from tcp . TODO hardcode this
 p_B_shoulder = [0;0;360;1]; % shoulder position seen from robot base . TODO hardcode this
 
 
-
-
-
-
-    function d_reach = distanceToBeingReachable()
-        p_B_wrist = H_B_W*H_W_ti*p_tcp_6; % compute required wrist position (seen from robot base) to perform task i
-        d_sw = norm(p_B_wrist(1:3)-p_B_shoulder(1:3)); % compute distance between wrist and shoulder
-        d_reach = - ( (d_sw<(rmin+rmax)/2)*(d_sw-rmin) + (d_sw>=(rmin+rmax)/2)*(rmax-d_sw) );
-    end
-    
-    function d_col = distancesToCollisions()
-        distances_values = vrep_store.getFullDistances();
-        distances_autocol = distances_values(1:9);
-        distances_col = distances_values(11:17);
-        
-        if any(distances_values == 0)
-            bob=1;
-        end
-        
-        distances_autocol(distances_autocol < eps) = -distance_autocollision_threshold*rand(); % randomise if the distance is 0
-        distances_col(distances_col < eps) = -distance_collision_threshold*rand(); % randomise if the distance is 0
-        
-        
-        
-        d_col = -[distances_autocol;distances_col]*1000;
-    end
-
-
-
-
-
-% set KMR config
-vrep_store.setKMRConfiguration([x_b,y_b,theta_b]);
-
-% retrieve KMR distance to scene and store it in c
-% distances_values = vrep_store.getDistancesToObstacles(); % former : doesn't take into account entanglement distances
-distances_values = vrep_store.getFullDistances(); % takes into account entanglement distances
-distance_KMR_scene = distances_values(10);
-if distances_values(10) == 0
-    bob=1;
+function d = distanceToBeingReachable()
+    p_B_wrist = H_B_W*H_W_ti*p_tcp_6; % compute required wrist position (seen from robot base) to perform task i
+    d_sw = norm(p_B_wrist(1:3)-p_B_shoulder(1:3)); % compute distance between wrist and shoulder
+    d = - ( (d_sw<(rmin+rmax)/2)*(d_sw-rmin) + (d_sw>=(rmin+rmax)/2)*(rmax-d_sw) );
 end
 
-if distances_values(10) < 0
-    bob=1; 
-end
-distance_KMR_scene(abs(distance_KMR_scene) < 0.0001 ) = -distance_collision_threshold*rand();
-% c(end) = -distance_KMR_scene*1000;
-c(end) = -distance_KMR_scene*1000;
-
-
-
+d_reach = zeros(ntasks,1);
 for ind_task = 1:ntasks
     H_W_ti = peaZYX_to_transformation(tasks{ind_task});
-    d_reach_taski = distanceToBeingReachable();
-    if ind_task == 1
-        d_reach = d_reach_taski;
-    else
-        d_reach = max(d_reach_taski,d_reach);
-    end
+
+    
+    d_reach(ind_task) = distanceToBeingReachable(); 
+    c(ind_task) = d_reach(ind_task);
 end
 
-if d_reach < -0.001 % mm
-    for ind_task = 1:ntasks
-        
-        % set destination
-        H_W_ti = peaZYX_to_transformation(tasks{ind_task});
-        H_B_tcp = H_B_W*H_W_ti;
-        
-        
-        % compute config and distances to joint limits
-%         [q, D_Phi, indD_Phi] = computeIKIiwa2(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
-        [q, D_Phi, indD_Phi] = computeIKIiwa3(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
-        c(N*(ind_task-1) + 1) = D_Phi*180/pi; % in degrees
-        
-        
-        % set iiwa configuration
-        vrep_store.setIiwaConfiguration(q(indD_Phi,1:7));
-        
-        
-        % retrieve and store distances to auto collision and to collision
-        c(N*(ind_task-1) + 2: N*ind_task) = distancesToCollisions();
-        
-    end
-else
-        c(1:end-2) = zeros(length(c)-2,1); %default_constraint_value*(1/2-rand()); % if task isn't reachable, then set a positive value to all other remaining constraints associated to the task
-end
 
-c(end-1)  = d_reach;
-
-% ceq = abs(c(1:ntasks)) + c(1:ntasks);
-x;
-c;
-
-
-% plot(c,'x')
-% pause(0.1);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ceq = [];
-
+c(c>=0) = c(c>=0)*multfactor;
+% v = std(c);
+v = abs(min(c)-max(c));
+bob=1;
 end
 

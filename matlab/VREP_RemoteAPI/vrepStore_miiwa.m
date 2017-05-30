@@ -227,21 +227,35 @@ classdef vrepStore_miiwa < handle
             
             % KMR distances
                 % to scene
+%                 if distances_values(10) < eps % if distance corresponding to KMR-scene is 0 
+% 
+%                     % find proximity sensor indices corresponding to KMR-scene
+%                     % measurements
+%                     range_length = 1.21/2; % m
+%                     range_width = 0.73/2; % m
+%                     detectedPoints_KMR = detectedPoints(not(cellfun('isempty', strfind(obj.proximitySensors_names, 'proxSensor_KMR_scene'))),:); % retrieve all distances readings from KMR related proximity sensors
+%                     [closest_d, ind_closest] = min(detectedPoints_KMR(:,1).^2 + detectedPoints_KMR(:,2).^2 + detectedPoints_KMR(:,3).^2); 
+%                     
+%                     detectedPoint_KMR = detectedPoints_KMR(ind_closest,:);
+% 
+%                     d_entanglement_x = range_length - abs(detectedPoint_KMR(1));
+%                     d_entanglement_y = range_width - abs(detectedPoint_KMR(2));
+% 
+%                     fullDistances_values(10) = -min([d_entanglement_x,d_entanglement_y]);
+% 
+%                 else
+%                     fullDistances_values(10) = distances_values(10);
+%                 end
                 if distances_values(10) < eps % if distance corresponding to KMR-scene is 0 
 
                     % find proximity sensor indices corresponding to KMR-scene
                     % measurements
-                    range_length = 1.21/2; % m
-                    range_width = 0.73/2; % m
-                    detectedPoints_KMR = detectedPoints(not(cellfun('isempty', strfind(obj.proximitySensors_names, 'proxSensor_KMR_scene'))),:); % retrieve all distances readings from KMR related proximity sensors
-                    [closest_d, ind_closest] = min(detectedPoints_KMR(:,1).^2 + detectedPoints_KMR(:,2).^2 + detectedPoints_KMR(:,3).^2); 
+                    range = 0.7700; % m
+                    detectedPoint_KMR = detectedPoints(not(cellfun('isempty', strfind(obj.proximitySensors_names, 'proxSensor_KMR_scene_00'))),:); % retrieve all distances readings from KMR related proximity sensors
                     
-                    detectedPoint_KMR = detectedPoints_KMR(ind_closest,:);
-
-                    d_entanglement_x = range_length - abs(detectedPoint_KMR(1));
-                    d_entanglement_y = range_width - abs(detectedPoint_KMR(2));
-
-                    fullDistances_values(10) = -min([d_entanglement_x,d_entanglement_y]);
+                    fullDistances_values(10) = -(range - norm(detectedPoint_KMR));
+                    
+                    
 
                 else
                     fullDistances_values(10) = distances_values(10);
