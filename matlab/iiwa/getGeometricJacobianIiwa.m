@@ -1,5 +1,5 @@
 function J_0 = getGeometricJacobianIiwa(config, tcpEulerZYX)
-% gemotric jacobian in base 0
+% gemotric jacobian in base 0 (standard units are rads and m)
 % angles are given in
 
     Hs = getFkIiwa(config, tcpEulerZYX);

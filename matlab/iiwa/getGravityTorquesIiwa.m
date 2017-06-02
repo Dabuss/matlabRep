@@ -1,6 +1,8 @@
-function [Tg] = getGravityTorquesIiwa(config, m_EE, transG_EE)
+function [Tg,Hs] = getGravityTorquesIiwa(config, m_EE, transG_EE)
 % Computes the gravity torques of the robot, when its base is set on the
 % floor based on an estimation of the masses and centers of gravity data
+% m_EE given in Kg
+% transG_EE given in mm
 
 % from calibration :
 % V_0 = [4.0000    4.4899    4.5166    3.7256    1.8208    3.3363    0.5739       0    2.9292    2.9767    1.2384    0.5334   -1.7781+20   -0.8745    -50.0000 -119.4238      -6.5391   59.0727    2.5454  -39.2055    0.1309  -96.7197  -0.0005  -134.1010   -1.5900  -74.1855  -26.2734   -3.2557]';
@@ -24,7 +26,7 @@ Gi_i = [xG,yG,zG]; % centers of links i seen from local reference frames i
 
 Hs = getFkIiwa(config,zeros(1,6));
 
-
+Tg = zeros(7,1);
 for i=7:-1:1
     Gi_0h = Hs{i}*[Gi_i(i,:),1]'; % homogeneous position of center of gravity of link i seen in 0
     Gi_x_mi(i,:) = m(i) * Gi_0h(1:3); % mass-i-ponderated gravity center position of link i (in 0)

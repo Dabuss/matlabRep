@@ -103,14 +103,16 @@ function d_col = distancesToCollisions()
 end
 
 
-checkReachability = any(constraintsToCheck == 1);
+% checkReachability = any(constraintsToCheck == 1);
+checkReachability = true; % reachibility is always to be sought otherwise other constraints make no sense (except maybe KMRCollision. discussable...)
 checkKMRCollisions = any(constraintsToCheck == 2);
 checkOtherCollisions = any(constraintsToCheck == 3);
 checkJointsLimits = any(constraintsToCheck == 4);
 
 constraintsCell = cell(4,1);
 % set KMR config
-    vrep_store.setKMRConfiguration([x_b,y_b,theta_b]);
+vrep_store.setKMRConfiguration([x_b,y_b,theta_b]);
+pause(0.1)
     
 if checkReachability % check reachability
     
@@ -124,17 +126,17 @@ if checkReachability % check reachability
             d_reach = max(d_reach_taski,d_reach);
         end
     end
-    constraintsCell{1} = d_reach;
+    constraintsCell{1} = d_reach*1000;
 end
 
 
 
 if checkKMRCollisions % get KMR distance to scene
     
-    [x_b,y_b,theta_b]
+    
     % retrieve KMR distance to scene and store it in c
     distances_values = vrep_store.getFullDistances(); % takes into account entanglement distances
-    distance_KMR_scene = distances_values(10)*1000 % mm
+    distance_KMR_scene = distances_values(10)*1000; % mm
     distance_KMR_scene(abs(distance_KMR_scene) < 0.0001 ) = -distance_collision_threshold*rand();
     constraintsCell{2} = -distance_KMR_scene;
 end
@@ -144,19 +146,22 @@ end
 if checkOtherCollisions && checkJointsLimits
     d_col = zeros((ndistances-1)*ntasks,1);
     d_jlimits = zeros(ntasks,1);
-    for ind_task = 1:ntasks % get all other distances to obstacles
-        H_W_ti = peaZYX_to_transformation(tasks{ind_task});
-        
-        H_B_tcp = H_B_W*H_W_ti;
-        [q, D_Phi, indD_Phi] = computeIKIiwa3(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
-        d_jlimits(ind_task) = D_Phi*180/pi; % in degrees
-        
-        % set iiwa configuration
-        vrep_store.setIiwaConfiguration(q(indD_Phi,1:7));
-        
-        % retrieve and store distances to auto collision and to collision
-        d_col((ind_task-1)*(ndistances-1)+1 : ind_task*(ndistances-1)) = distancesToCollisions();
-        
+    
+    if constraintsCell{1} <= 0 % if reachability is respected
+        for ind_task = 1:ntasks % get all other distances to obstacles
+            H_W_ti = peaZYX_to_transformation(tasks{ind_task});
+            
+            H_B_tcp = H_B_W*H_W_ti;
+            [q, D_Phi, indD_Phi] = computeIKIiwa3(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
+            d_jlimits(ind_task) = D_Phi*180/pi; % in degrees
+            
+            % set iiwa configuration
+            vrep_store.setIiwaConfiguration(q(indD_Phi,1:7));
+            
+            % retrieve and store distances to auto collision and to collision
+            d_col((ind_task-1)*(ndistances-1)+1 : ind_task*(ndistances-1)) = distancesToCollisions();
+            
+        end
     end
     
     constraintsCell{3} = d_col;
@@ -164,32 +169,38 @@ if checkOtherCollisions && checkJointsLimits
     
 elseif checkOtherCollisions && ~checkJointsLimits
     d_col = zeros((ndistances-1)*ntasks,1);
-    for ind_task = 1:ntasks % get all other distances to obstacles
-        H_W_ti = peaZYX_to_transformation(tasks{ind_task});
-        
-        H_B_tcp = H_B_W*H_W_ti;
-        [q] = computeIKIiwa1(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
-        
-        % set iiwa configuration
-        vrep_store.setIiwaConfiguration(q(1,1:7));
-        
-        % retrieve and store distances to auto collision and to collision
-        d_col((ind_task-1)*(ndistances-1)+1 : ind_task*(ndistances-1)) = distancesToCollisions();
-        
+    if constraintsCell{1} <= 0 % if reachability is respected
+        for ind_task = 1:ntasks % get all other distances to obstacles
+            H_W_ti = peaZYX_to_transformation(tasks{ind_task});
+            
+            H_B_tcp = H_B_W*H_W_ti;
+            [q] = computeIKIiwa1(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
+            
+            % set iiwa configuration
+            vrep_store.setIiwaConfiguration(q(1,1:7));
+            
+            % retrieve and store distances to auto collision and to collision
+            d_col((ind_task-1)*(ndistances-1)+1 : ind_task*(ndistances-1)) = distancesToCollisions();
+            
+        end
     end
-    
     constraintsCell{3} = d_col;
     
 elseif ~checkOtherCollisions && checkJointsLimits
     d_jlimits = zeros(ntasks,1);
-    for ind_task = 1:ntasks % get all other distances to obstacles
-        H_W_ti = peaZYX_to_transformation(tasks{ind_task});
-        
-        H_B_tcp = H_B_W*H_W_ti;
-        [q, D_Phi, indD_Phi] = computeIKIiwa3(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
-        d_jlimits(ind_task) = D_Phi*180/pi; % in degrees
+    if constraintsCell{1} <= 0 % if reachability is respected
+        for ind_task = 1:ntasks % get all other distances to obstacles
+            H_W_ti = peaZYX_to_transformation(tasks{ind_task});
+            
+            H_B_tcp = H_B_W*H_W_ti;
+            [q, D_Phi, indD_Phi] = computeIKIiwa3(DeltaEE,transformation_to_peaZYX(H_B_tcp),betas(ind_task));
+            
+            % set iiwa configuration
+            vrep_store.setIiwaConfiguration(q(1,1:7));
+            
+            d_jlimits(ind_task) = D_Phi*180/pi; % in degrees
+        end
     end
-    
     constraintsCell{4} = d_jlimits;
     
 end

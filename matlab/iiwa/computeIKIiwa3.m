@@ -124,7 +124,7 @@ Cw = R_4_3*Cs'*R_0_7;
 
 
 
-ntestSwiv = 11;
+ntestSwiv = 101;
 span = 2*pi/ntestSwiv;
 % swiv = linspace(-pi,pi,ntestSwiv);
 if (swivel < 0)
@@ -238,6 +238,7 @@ end
 admissibleRanges = cell(7,1,8);
 ranges = cell(1,1,8);
 D_Phis = zeros(8,1);
+
 for ind_config = 1:8
     
     isSwivelWithinJointLimits = true;
@@ -331,7 +332,7 @@ for ind_config = 1:8
     
     % store D_phis(i), the distance to being within joint limits for config i
     if ~isempty(ranges{ind_config})
-        D_Phis(ind_config) = min( abs(ranges{ind_config} - swivel) )*( -(isSwivelWithinJointLimits) + (~isSwivelWithinJointLimits) );
+        D_Phis(ind_config) = min( abs(ranges{ind_config} - swivel) )*( -(isSwivelWithinJointLimits) + (~isSwivelWithinJointLimits) ); % is negative if within and positive if out of joints limits
     else
         D_Phis(ind_config) = pi*( -(isSwivelWithinJointLimits) + (~isSwivelWithinJointLimits) );
     end

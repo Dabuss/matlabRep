@@ -8,6 +8,8 @@ FiniteDifferenceStepSize_Data = [0.001,0.001,ones(1,length(vrep_store.tasks)+1)*
 % x0 = [1.2;-1.3;-2.52;zeros(length(vrep_store.tasks),1)];
 % x0 = [1.1624   -1.4000   -0.0003    0.0000    0.0000    0.0000    0.0000   -0.0000   -0.0000];
 
+lb = [0,-1.652,-pi, -pi*ones(1,length(vrep_store.tasks))];
+ub = [2.1833,-0, pi, pi*ones(1,length(vrep_store.tasks))];
 %% Start with the default options
 options = optimoptions('fmincon');
 %% Modify options setting
@@ -17,5 +19,7 @@ options = optimoptions(options,'Algorithm', 'interior-point');
 options = optimoptions(options,'FiniteDifferenceStepSize', FiniteDifferenceStepSize_Data);
 % [x,fval,exitflag,output,lambda,grad,hessian] = ...
 % fmincon(@(x)IKOptimizer(x,vrep_store,100),x0,[],[],[],[],[],[],@(x)IKConstraintsStepByStep(x,vrep_store,constraintsToCheck),options);
-[x,fval,exitflag,output,lambda,grad,hessian] = ...
-    fmincon(@(x)IKOptimizer2(x,vrep_store,1),x0,[],[],[],[],[],[],@(x)IKConstraintsStepByStep(x,vrep_store,constraintsToCheck),options);
+% [x,fval,exitflag,output,lambda,grad,hessian] = ...
+%     fmincon(@(x)IKOptimizer2(x,vrep_store,1),x0,[],[],[],[],lb,ub,@(x)IKConstraintsStepByStep(x,vrep_store,constraintsToCheck),options);
+[x,fval,exitflag,output,lambda,grad,hessian] = fmincon(@(x)IKOptimizer2(x,vrep_store,10),x0,[],[],[],[],lb,ub,@(x)IKConstraintsStepByStep(x,vrep_store,constraintsToCheck),options);
+% [x,fval,exitflag,output,lambda,grad,hessian] = fmincon(@(x)0,x0,[],[],[],[],lb,ub,@(x)IKConstraintsStepByStep(x,vrep_store,constraintsToCheck),options);

@@ -115,8 +115,9 @@ end
 
 
 c(c>=0) = c(c>=0)*multfactor;
-% v = std(c);
-v = abs(min(c)-max(c));
+v = std(c);
+% v = abs(min(c)-max(c));
+% v = sum(c.^2);
 bob=1;
 end
 
